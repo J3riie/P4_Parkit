@@ -4,7 +4,9 @@ import com.parkit.parkingsystem.constants.ParkingType;
 
 public class ParkingSpot {
     private int number;
+
     private ParkingType parkingType;
+
     private boolean isAvailable;
 
     public ParkingSpot(int number, ParkingType parkingType, boolean isAvailable) {
@@ -39,9 +41,11 @@ public class ParkingSpot {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ParkingSpot that = (ParkingSpot) o;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        final ParkingSpot that = (ParkingSpot) o;
         return number == that.number;
     }
 
