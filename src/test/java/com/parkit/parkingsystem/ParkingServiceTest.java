@@ -5,6 +5,11 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Date;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +48,9 @@ public class ParkingServiceTest {
 
             final ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
             final Ticket ticket = new Ticket();
-            ticket.setInTime(new Date(System.currentTimeMillis() - (60 * 60 * 1000)));
+            final Instant instantIn = Instant.parse("2022-08-19T16:02:42.00Z");
+            final Date dateIn = Date.from(LocalDate.now(Clock.fixed(instantIn, ZoneId.of("Europe/Paris"))).atStartOfDay().toInstant(ZoneOffset.UTC));
+            ticket.setInTime(dateIn);
             ticket.setParkingSpot(parkingSpot);
             ticket.setVehicleRegNumber("ABCDEF");
             when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
@@ -60,7 +67,8 @@ public class ParkingServiceTest {
 
     @Test
     public void processExitingVehicleTest() {
-        parkingService.processExitingVehicle();
+        final Instant instantOut = Instant.parse("2022-08-19T17:02:42.00Z");
+        parkingService.processExitingVehicle(Clock.fixed(instantOut, ZoneId.of("Europe/Paris")));
         verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
     }
 

@@ -27,7 +27,6 @@ public class ParkingSpotDAO {
             final ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 result = rs.getInt(1);
-                ;
             }
             dataBaseConfig.closeResultSet(rs);
             dataBaseConfig.closePreparedStatement(ps);
@@ -40,7 +39,7 @@ public class ParkingSpotDAO {
     }
 
     public boolean updateParking(ParkingSpot parkingSpot) {
-        // update the availability fo that parking slot
+        // update the availability for that parking spot
         Connection con = null;
         try {
             con = dataBaseConfig.getConnection();
