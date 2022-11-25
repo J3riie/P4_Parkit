@@ -8,18 +8,26 @@ import java.util.Date;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.constants.ParkingType;
+import com.parkit.parkingsystem.dao.TicketDAO;
 import com.parkit.parkingsystem.model.ParkingSpot;
 import com.parkit.parkingsystem.model.Ticket;
 import com.parkit.parkingsystem.service.FareCalculatorService;
+import com.parkit.parkingsystem.service.ParkingService;
 
 public class FareCalculatorServiceTest {
 
     private static FareCalculatorService fareCalculatorService;
 
+    private static ParkingService parkingService;
+
     private Ticket ticket;
+
+    @Mock
+    private TicketDAO ticketDAO;
 
     @BeforeAll
     private static void setUp() {
@@ -130,21 +138,7 @@ public class FareCalculatorServiceTest {
     @Test
     public void calculateFareCarUnderHalfAnHourParkingTime() {
         final Date inTime = new Date();
-        inTime.setTime(System.currentTimeMillis() - (20 * 60 * 1000));// 45 minutes parking time should give 3/4th parking fare
-        final Date outTime = new Date();
-        final ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
-
-        ticket.setInTime(inTime);
-        ticket.setOutTime(outTime);
-        ticket.setParkingSpot(parkingSpot);
-        fareCalculatorService.calculateFare(ticket);
-        assertEquals(0, ticket.getPrice());
-    }
-
-    @Test
-    public void calculateFareOfDiscountedUser() {
-        final Date inTime = new Date();
-        inTime.setTime(System.currentTimeMillis() - (20 * 60 * 1000));// 45 minutes parking time should give 3/4th parking fare
+        inTime.setTime(System.currentTimeMillis() - (20 * 60 * 1000));// 20 minutes parking time should be free
         final Date outTime = new Date();
         final ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
 
