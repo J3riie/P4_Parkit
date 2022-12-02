@@ -1,7 +1,5 @@
 package com.parkit.parkingsystem.service;
 
-import java.time.Clock;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -28,11 +26,11 @@ public class InteractiveShell {
             final int option = inputReaderUtil.readSelection();
             switch (option) {
             case 1: {
-                parkingService.processIncomingVehicle(Clock.systemDefaultZone());
+                parkingService.processIncomingVehicle();
                 break;
             }
             case 2: {
-                parkingService.processExitingVehicle(Clock.systemDefaultZone());
+                parkingService.processExitingVehicle();
                 break;
             }
             case 3: {

@@ -1,8 +1,5 @@
 package com.parkit.parkingsystem.service;
 
-import java.time.Clock;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.Date;
 
 import org.apache.logging.log4j.LogManager;
@@ -33,7 +30,7 @@ public class ParkingService {
         this.ticketDAO = ticketDAO;
     }
 
-    public void processIncomingVehicle(Clock clock) {
+    public void processIncomingVehicle() {
         try {
             final ParkingSpot parkingSpot = getNextParkingNumberIfAvailable();
             if (parkingSpot != null && parkingSpot.getId() > 0) {
@@ -41,7 +38,7 @@ public class ParkingService {
                 parkingSpot.setAvailable(false);
                 parkingSpotDAO.updateParking(parkingSpot);// allot this parking space and mark it's availability as false
 
-                final Date inTime = Date.from(LocalDate.now(clock).atStartOfDay().toInstant(ZoneOffset.UTC));
+                final Date inTime = new Date();
                 final Ticket ticket = new Ticket();
                 ticket.setParkingSpot(parkingSpot);
                 ticket.setVehicleRegNumber(vehicleRegNumber);
@@ -101,11 +98,11 @@ public class ParkingService {
         }
     }
 
-    public void processExitingVehicle(Clock clock) {
+    public void processExitingVehicle() {
         try {
             final String vehicleRegNumber = getVehichleRegNumber();
             final Ticket ticket = ticketDAO.getTicket(vehicleRegNumber);
-            final Date outTime = Date.from(LocalDate.now(clock).atStartOfDay().toInstant(ZoneOffset.UTC));
+            final Date outTime = new Date();
             ticket.setOutTime(outTime);
             fareCalculatorService.calculateFare(ticket);
             if (ticketDAO.updateTicket(ticket)) {

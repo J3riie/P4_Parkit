@@ -1,26 +1,21 @@
 package com.parkit.parkingsystem;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.parkit.parkingsystem.constants.ParkingType.CAR;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.Clock;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.Date;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.constants.ParkingType;
 import com.parkit.parkingsystem.dao.ParkingSpotDAO;
 import com.parkit.parkingsystem.dao.TicketDAO;
@@ -47,16 +42,6 @@ public class ParkingServiceTest {
     private void setUpPerTest() {
         try {
             when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
-            final ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
-            final Ticket ticket = new Ticket();
-            final Instant instantIn = Instant.parse("2022-08-19T16:02:42.00Z");
-            final Date dateIn = Date.from(LocalDate.now(Clock.fixed(instantIn, ZoneId.of("Europe/Paris"))).atStartOfDay().toInstant(ZoneOffset.UTC));
-            ticket.setInTime(dateIn);
-            ticket.setParkingSpot(parkingSpot);
-            ticket.setVehicleRegNumber("ABCDEF");
-            when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
-            when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
-            when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
             parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
         } catch (final Exception e) {
             e.printStackTrace();
@@ -65,66 +50,71 @@ public class ParkingServiceTest {
     }
 
     @Test
-    public void processExitingVehicleTest() {
-        final Instant instantOut = Instant.parse("2022-08-19T17:02:42.00Z");
-        parkingService.processExitingVehicle(Clock.fixed(instantOut, ZoneId.of("Europe/Paris")));
-        verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
+    public void processExitingVehicle_shouldUpdateParking() {
+        final Date inTime = new Date(System.currentTimeMillis() - (60 * 60 * 1000));
+        final Ticket ticket = generateTicket(CAR, inTime);
+        when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
+        when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
+        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
+
+        parkingService.processExitingVehicle();
+
+        verify(ticketDAO, times(1)).updateTicket(any(Ticket.class));
+        verify(parkingSpotDAO, times(1)).updateParking(any(ParkingSpot.class));
     }
 
     @Test
-    public void processIncomingVehiculeTest() {
-        final ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
-        final Ticket expectedTicket = new Ticket();
-        final Instant instantIn = Instant.parse("2022-08-19T16:02:42.00Z");
-        final Date dateIn = Date.from(LocalDate.now(Clock.fixed(instantIn, ZoneId.of("Europe/Paris"))).atStartOfDay().toInstant(ZoneOffset.UTC));
-        expectedTicket.setInTime(dateIn);
-        expectedTicket.setParkingSpot(parkingSpot);
-        expectedTicket.setVehicleRegNumber("ABCDEF");
-        parkingService.processIncomingVehicle(Clock.fixed(instantIn, ZoneId.of("Europe/Paris")));
-        final Instant instantOut = Instant.parse("2022-08-19T17:02:42.00Z");
-        parkingService.processExitingVehicle(Clock.fixed(instantOut, ZoneId.of("Europe/Paris")));
-        assertThat(ticketDAO.getTicket("ABCDEF").getVehicleRegNumber()).isEqualTo(expectedTicket.getVehicleRegNumber());
+    public void processExitingVehicle_shouldNotUpdateParking_whenErrorOccurred() {
+        final Date inTime = new Date(System.currentTimeMillis() - (60 * 60 * 1000));
+        final Ticket ticket = generateTicket(CAR, inTime);
+        when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
+        when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(false);
+
+        parkingService.processExitingVehicle();
+
+        assertEquals(0, parkingSpotDAO.getNextAvailableSlot(CAR));
+        verify(ticketDAO, times(1)).updateTicket(any(Ticket.class));
+        verify(parkingSpotDAO, times(0)).updateParking(any(ParkingSpot.class));
     }
 
     @Test
-    public void calculateFareCareWithOneHourParkingTime() {
-        final ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
-        final Ticket expectedTicket = new Ticket();
-        final Instant instantIn = Instant.parse("2022-08-19T16:02:42.00Z");
-        final Date dateIn = Date.from(LocalDate.now(Clock.fixed(instantIn, ZoneId.of("Europe/Paris"))).atStartOfDay().toInstant(ZoneOffset.UTC));
-        expectedTicket.setInTime(dateIn);
-        expectedTicket.setParkingSpot(parkingSpot);
-        expectedTicket.setVehicleRegNumber("ABCDEF");
-        expectedTicket.setPrice(1.5);
-        parkingService.processIncomingVehicle(Clock.fixed(instantIn, ZoneId.of("Europe/Paris")));
-        final Instant instantOut = Instant.parse("2022-08-19T17:02:42.00Z");
-        when(ticketDAO.getTicket("ABCDEF")).thenReturn(expectedTicket);
-        parkingService.processExitingVehicle(Clock.fixed(instantOut, ZoneId.of("Europe/Paris")));
-        assertThat(ticketDAO.getTicket("ABCDEF").getPrice()).isEqualTo(Fare.CAR_RATE_PER_HOUR);
+    public void processIncomingVehicule_shouldParkVehicle_whenParkingSlotIsAvailable() {
+        when(inputReaderUtil.readSelection()).thenReturn(1);
+        when(parkingSpotDAO.getNextAvailableSlot(any(ParkingType.class))).thenReturn(1);
+        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
+
+        parkingService.processIncomingVehicle();
+
+        verify(ticketDAO, times(1)).saveTicket(any(Ticket.class));
+        verify(parkingSpotDAO, times(1)).updateParking(any(ParkingSpot.class));
+    }
+
+    @Test
+    public void parkingForLessThan30Minutes_shouldBeFree() {
+        final Date inTime = new Date(System.currentTimeMillis() - (20 * 60 * 1000));
+        final Ticket ticket = generateTicket(CAR, inTime);
+        when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
+        when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
+
+        parkingService.processExitingVehicle();
+
+        verify(ticketDAO, times(1)).updateTicket(any(Ticket.class));
+        verify(parkingSpotDAO, times(1)).updateParking(any(ParkingSpot.class));
+        assertEquals(0, ticket.getPrice());
+
     }
 
     // @Test
-    // public void calculateFareWithDiscount() {
-    // final ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
-    // final Ticket expectedTicket = new Ticket();
-    // final Instant instantIn = Instant.parse("2022-08-19T16:02:42.00Z");
-    // final Date dateIn = Date.from(LocalDate.now(Clock.fixed(instantIn, ZoneId.of("Europe/Paris"))).atStartOfDay().toInstant(ZoneOffset.UTC));
-    // expectedTicket.setInTime(dateIn);
-    // expectedTicket.setParkingSpot(parkingSpot);
-    // expectedTicket.setVehicleRegNumber("ABCDEF");
-    // parkingService.processIncomingVehicle(Clock.fixed(instantIn, ZoneId.of("Europe/Paris")));
-    // final Instant instantOut = Instant.parse("2022-08-19T17:02:42.00Z");
-    // parkingService.processExitingVehicle(Clock.fixed(instantOut, ZoneId.of("Europe/Paris")));
+    // public void applyDiscountForRecurrentUser() {
     //
-    // final Instant secondInstantIn = Instant.parse("2022-08-19T19:02:42.00Z");
-    // final Date secondDateIn = Date.from(LocalDate.now(Clock.fixed(secondInstantIn, ZoneId.of("Europe/Paris"))).atStartOfDay().toInstant(ZoneOffset.UTC));
-    // expectedTicket.setInTime(secondDateIn);
-    // expectedTicket.setParkingSpot(parkingSpot);
-    // expectedTicket.setVehicleRegNumber("ABCDEF");
-    // parkingService.processIncomingVehicle(Clock.fixed(secondInstantIn, ZoneId.of("Europe/Paris")));
-    // final Instant secondInstantOut = Instant.parse("2022-08-19T20:02:42.00Z");
-    // parkingService.processExitingVehicle(Clock.fixed(secondInstantOut, ZoneId.of("Europe/Paris")));
-    //
-    // assertThat(ticketDAO.getTicket("ABCDEF").getPrice()).isEqualTo(2 * Fare.CAR_RATE_PER_HOUR * 0.95);
     // }
+
+    private Ticket generateTicket(ParkingType type, Date inTime) {
+        final ParkingSpot parkingSpot = new ParkingSpot(1, type, false);
+        final Ticket ticket = new Ticket();
+        ticket.setInTime(inTime);
+        ticket.setParkingSpot(parkingSpot);
+        ticket.setVehicleRegNumber("ABCDEF");
+        return ticket;
+    }
 }
