@@ -16,9 +16,19 @@ import com.parkit.parkingsystem.model.Ticket;
 
 public class TicketDAO {
 
+    private static final String ERROR_FETCHING_NEXT_AVAILABLE_SLOT = "Error fetching next available slot";
+
     private static final Logger logger = LogManager.getLogger("TicketDAO");
 
-    public static final DataBaseConfig dataBaseConfig = new DataBaseConfig();
+    private DataBaseConfig dataBaseConfig = new DataBaseConfig();
+
+    public DataBaseConfig getDataBaseConfig() {
+        return dataBaseConfig;
+    }
+
+    public void setDataBaseConfig(DataBaseConfig dataBaseConfig) {
+        this.dataBaseConfig = dataBaseConfig;
+    }
 
     public boolean saveTicket(Ticket ticket) {
         try (Connection con = dataBaseConfig.getConnection(); final PreparedStatement ps = con.prepareStatement(DBConstants.SAVE_TICKET);) {
@@ -29,7 +39,7 @@ public class TicketDAO {
             ps.setTimestamp(5, (ticket.getOutTime() == null) ? null : (new Timestamp(ticket.getOutTime().getTime())));
             return ps.execute();
         } catch (final Exception ex) {
-            logger.error("Error fetching next available slot", ex);
+            logger.error(ERROR_FETCHING_NEXT_AVAILABLE_SLOT, ex);
         }
         return false;
     }
@@ -53,7 +63,7 @@ public class TicketDAO {
             dataBaseConfig.closeResultSet(rs);
             dataBaseConfig.closePreparedStatement(ps);
         } catch (final Exception ex) {
-            logger.error("Error fetching next available slot", ex);
+            logger.error(ERROR_FETCHING_NEXT_AVAILABLE_SLOT, ex);
         }
         return ticket;
     }
@@ -72,7 +82,21 @@ public class TicketDAO {
     }
 
     public Ticket findTicketByVehicleRegNumberAndOutTimeIsNotNull(String vehicleRegNumber) {
-        // TODO Auto-generated method stub
-        return null;
+        Ticket ticket = null;
+        try (Connection con = dataBaseConfig.getConnection(); final PreparedStatement ps = con.prepareStatement(DBConstants.GET_LAST_TICKET);) {
+            // ID, PARKING_NUMBER, VEHICLE_REG_NUMBER, PRICE, IN_TIME, OUT_TIME)
+            ps.setString(1, vehicleRegNumber);
+            final ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                ticket = new Ticket();
+                ticket.setId(rs.getInt(1));
+                ticket.setOutTime(rs.getTimestamp(2));
+            }
+            dataBaseConfig.closeResultSet(rs);
+            dataBaseConfig.closePreparedStatement(ps);
+        } catch (final Exception ex) {
+            logger.error(ERROR_FETCHING_NEXT_AVAILABLE_SLOT, ex);
+        }
+        return ticket;
     }
 }

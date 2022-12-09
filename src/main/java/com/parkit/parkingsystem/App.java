@@ -18,6 +18,6 @@ public class App {
         final ParkingSpotDAO parkingSpotDAO = new ParkingSpotDAO();
         final TicketDAO ticketDAO = new TicketDAO();
         final ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
-        InteractiveShell.loadInterface(inputReaderUtil, parkingSpotDAO, ticketDAO, parkingService);
+        InteractiveShell.loadInterface(inputReaderUtil, parkingService);
     }
 }
