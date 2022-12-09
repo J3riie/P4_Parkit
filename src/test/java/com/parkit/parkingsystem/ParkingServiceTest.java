@@ -113,9 +113,9 @@ public class ParkingServiceTest {
     public void applyDiscountForRecurringUser() {
         final Date inTime = new Date(System.currentTimeMillis() - (60 * 60 * 1000));
         final Ticket ticket = generateTicket(CAR, inTime);
+        ticket.setRecurringUser(true);
         when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
         when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
-        when(ticketDAO.findTicketByVehicleRegNumberAndOutTimeIsNotNull(anyString())).thenReturn(new Ticket());
         when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
 
         parkingService.processExitingVehicle();

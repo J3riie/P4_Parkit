@@ -7,6 +7,9 @@ import java.time.LocalDateTime;
 import java.util.Date;
 
 public class Ticket {
+
+    private static final double DISCOUNT = 0.95;
+
     private int id;
 
     private ParkingSpot parkingSpot;
@@ -18,6 +21,12 @@ public class Ticket {
     private Date inTime;
 
     private Date outTime;
+
+    private boolean isRecurringUser;
+
+    public Ticket() {
+        this.inTime = new Date();
+    }
 
     public int getId() {
         return id;
@@ -67,12 +76,21 @@ public class Ticket {
         this.outTime = outTime;
     }
 
+    public boolean isRecurringUser() {
+        return isRecurringUser;
+    }
+
+    public void setRecurringUser(boolean isRecurringUser) {
+        this.isRecurringUser = isRecurringUser;
+    }
+
     public void computePrice(double ratePerHour) {
         final Duration duration = calculateDuration();
         if (isLessThan30MinutesParking(duration)) {
             this.setPrice(0);
         } else {
-            this.setPrice(duration.toMinutes() * ratePerHour / 60);
+            final double standardPrice = duration.toMinutes() * ratePerHour / 60;
+            this.setPrice(this.isRecurringUser ? standardPrice * DISCOUNT : standardPrice);
         }
     }
 

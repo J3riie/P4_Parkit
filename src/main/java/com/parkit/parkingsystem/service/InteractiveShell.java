@@ -11,15 +11,11 @@ public class InteractiveShell {
 
     private static final Logger logger = LogManager.getLogger("InteractiveShell");
 
-    public static void loadInterface() {
+    public static void loadInterface(InputReaderUtil inputReaderUtil, ParkingSpotDAO parkingSpotDAO, TicketDAO ticketDAO, ParkingService parkingService) {
         logger.info("App initialized!!!");
         logger.info("Welcome to Parking System!");
 
         boolean continueApp = true;
-        final InputReaderUtil inputReaderUtil = new InputReaderUtil();
-        final ParkingSpotDAO parkingSpotDAO = new ParkingSpotDAO();
-        final TicketDAO ticketDAO = new TicketDAO();
-        final ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
 
         while (continueApp) {
             loadMenu();
