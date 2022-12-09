@@ -35,7 +35,7 @@ public class ParkingSpot {
         return isAvailable;
     }
 
-    public void setAvailable(boolean available) {
+    public void setAvailability(boolean available) {
         isAvailable = available;
     }
 

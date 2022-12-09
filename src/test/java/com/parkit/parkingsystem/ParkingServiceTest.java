@@ -2,6 +2,8 @@ package com.parkit.parkingsystem;
 
 import static com.parkit.parkingsystem.constants.ParkingType.CAR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
@@ -61,6 +63,7 @@ public class ParkingServiceTest {
 
         verify(ticketDAO, times(1)).updateTicket(any(Ticket.class));
         verify(parkingSpotDAO, times(1)).updateParking(any(ParkingSpot.class));
+        assertTrue(ticket.getParkingSpot().isAvailable());
     }
 
     @Test
@@ -75,6 +78,7 @@ public class ParkingServiceTest {
         assertEquals(0, parkingSpotDAO.getNextAvailableSlot(CAR));
         verify(ticketDAO, times(1)).updateTicket(any(Ticket.class));
         verify(parkingSpotDAO, times(0)).updateParking(any(ParkingSpot.class));
+        assertFalse(ticket.getParkingSpot().isAvailable());
     }
 
     @Test
@@ -101,13 +105,26 @@ public class ParkingServiceTest {
         verify(ticketDAO, times(1)).updateTicket(any(Ticket.class));
         verify(parkingSpotDAO, times(1)).updateParking(any(ParkingSpot.class));
         assertEquals(0, ticket.getPrice());
+        assertTrue(ticket.getParkingSpot().isAvailable());
 
     }
 
-    // @Test
-    // public void applyDiscountForRecurrentUser() {
-    //
-    // }
+    @Test
+    public void applyDiscountForRecurringUser() {
+        final Date inTime = new Date(System.currentTimeMillis() - (60 * 60 * 1000));
+        final Ticket ticket = generateTicket(CAR, inTime);
+        when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
+        when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
+        when(ticketDAO.findTicketByVehicleRegNumberAndOutTimeIsNotNull(anyString())).thenReturn(new Ticket());
+        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
+
+        parkingService.processExitingVehicle();
+
+        assertEquals(0.95 * 1.5, ticket.getPrice());
+        verify(ticketDAO, times(1)).updateTicket(ticket);
+        verify(parkingSpotDAO, times(1)).updateParking(any(ParkingSpot.class));
+        assertTrue(ticket.getParkingSpot().isAvailable());
+    }
 
     private Ticket generateTicket(ParkingType type, Date inTime) {
         final ParkingSpot parkingSpot = new ParkingSpot(1, type, false);

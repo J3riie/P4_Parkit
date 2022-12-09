@@ -20,6 +20,8 @@ public class TicketDAO {
 
     public DataBaseConfig dataBaseConfig = new DataBaseConfig();
 
+    private boolean isRecurringUser;
+
     public boolean saveTicket(Ticket ticket) {
         Connection con = null;
         try {
@@ -84,5 +86,10 @@ public class TicketDAO {
             dataBaseConfig.closeConnection(con);
         }
         return false;
+    }
+
+    public Ticket findTicketByVehicleRegNumberAndOutTimeIsNotNull(String vehicleRegNumber) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

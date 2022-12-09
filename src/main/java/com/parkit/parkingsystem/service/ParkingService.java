@@ -35,7 +35,7 @@ public class ParkingService {
             final ParkingSpot parkingSpot = getNextParkingNumberIfAvailable();
             if (parkingSpot != null && parkingSpot.getId() > 0) {
                 final String vehicleRegNumber = getVehichleRegNumber();
-                parkingSpot.setAvailable(false);
+                parkingSpot.setAvailability(false);
                 parkingSpotDAO.updateParking(parkingSpot);// allot this parking space and mark it's availability as false
 
                 final Date inTime = new Date();
@@ -45,6 +45,9 @@ public class ParkingService {
                 ticket.setPrice(0);
                 ticket.setInTime(inTime);
                 ticket.setOutTime(null);
+                if (isRecurringUser(vehicleRegNumber)) {
+                    logger.info("Welcome back! As a recurring user of our parking lot, you'll benefit from a 5'%' discount.");
+                }
                 ticketDAO.saveTicket(ticket);
                 logger.info("Generated Ticket and saved in DB");
                 logger.info("Please park your vehicle in spot number {}", parkingSpot.getId());
@@ -55,9 +58,39 @@ public class ParkingService {
         }
     }
 
+    public void processExitingVehicle() {
+        try {
+            final String vehicleRegNumber = getVehichleRegNumber();
+            final Ticket ticket = ticketDAO.getTicket(vehicleRegNumber);
+            final Date outTime = new Date();
+            ticket.setOutTime(outTime);
+            if (isRecurringUser(vehicleRegNumber)) {
+                fareCalculatorService.calculateFare(ticket, 0.95);
+            } else {
+                fareCalculatorService.calculateFare(ticket);
+            }
+            if (ticketDAO.updateTicket(ticket)) {
+                final ParkingSpot parkingSpot = ticket.getParkingSpot();
+                parkingSpot.setAvailability(true);
+                parkingSpotDAO.updateParking(parkingSpot);
+                logger.info("Please pay the parking fare: {}", ticket.getPrice());
+                logger.info("Recorded out-time for vehicle number {} is {}", ticket.getVehicleRegNumber(), outTime);
+            } else {
+                logger.warn("Unable to update ticket information. Error occurred");
+            }
+        } catch (final Exception e) {
+            logger.error("Unable to process exiting vehicle", e);
+        }
+    }
+
     private String getVehichleRegNumber() throws Exception {
         logger.info("Please type the vehicle registration number and press enter key");
         return inputReaderUtil.readVehicleRegistrationNumber();
+    }
+
+    public boolean isRecurringUser(String vehicleRegNumber) {
+        return ticketDAO.findTicketByVehicleRegNumberAndOutTimeIsNotNull(vehicleRegNumber) != null;
+
     }
 
     public ParkingSpot getNextParkingNumberIfAvailable() {
@@ -95,27 +128,6 @@ public class ParkingService {
             logger.warn("Incorrect input provided");
             throw new IllegalArgumentException("Entered input is invalid");
         }
-        }
-    }
-
-    public void processExitingVehicle() {
-        try {
-            final String vehicleRegNumber = getVehichleRegNumber();
-            final Ticket ticket = ticketDAO.getTicket(vehicleRegNumber);
-            final Date outTime = new Date();
-            ticket.setOutTime(outTime);
-            fareCalculatorService.calculateFare(ticket);
-            if (ticketDAO.updateTicket(ticket)) {
-                final ParkingSpot parkingSpot = ticket.getParkingSpot();
-                parkingSpot.setAvailable(true);
-                parkingSpotDAO.updateParking(parkingSpot);
-                logger.info("Please pay the parking fare: {}", ticket.getPrice());
-                logger.info("Recorded out-time for vehicle number {} is {}", ticket.getVehicleRegNumber(), outTime);
-            } else {
-                logger.warn("Unable to update ticket information. Error occurred");
-            }
-        } catch (final Exception e) {
-            logger.error("Unable to process exiting vehicle", e);
         }
     }
 }
