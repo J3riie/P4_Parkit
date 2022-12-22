@@ -12,7 +12,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.Date;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -40,8 +39,7 @@ public class ParkingServiceTest {
     @Mock
     private static TicketDAO ticketDAO;
 
-    @BeforeEach
-    private void setUpPerTest() {
+    private void setUpWorkingTest() {
         try {
             when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
             parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
@@ -52,7 +50,33 @@ public class ParkingServiceTest {
     }
 
     @Test
+    public void processIncomingVehicule_shouldParkVehicle_whenParkingSlotIsAvailable() {
+        setUpWorkingTest();
+        when(inputReaderUtil.readSelection()).thenReturn(1);
+        when(parkingSpotDAO.getNextAvailableSlot(any(ParkingType.class))).thenReturn(1);
+        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
+
+        parkingService.processIncomingVehicle();
+
+        verify(ticketDAO, times(1)).saveTicket(any(Ticket.class));
+        verify(parkingSpotDAO, times(1)).updateParking(any(ParkingSpot.class));
+    }
+
+    @Test
+    public void processIncomingVehicle_shouldThrowException_whenParkingSpotIsIllegal() {
+        parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
+        when(inputReaderUtil.readSelection()).thenReturn(2);
+        when(parkingSpotDAO.getNextAvailableSlot(any(ParkingType.class))).thenReturn(0);
+
+        parkingService.processIncomingVehicle();
+
+        verify(parkingSpotDAO, times(0)).updateParking(any(ParkingSpot.class));
+        verify(ticketDAO, times(0)).saveTicket(any(Ticket.class));
+    }
+
+    @Test
     public void processExitingVehicle_shouldUpdateParking() {
+        setUpWorkingTest();
         final Date inTime = new Date(System.currentTimeMillis() - (60 * 60 * 1000));
         final Ticket ticket = generateTicket(CAR, inTime);
         when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
@@ -68,6 +92,7 @@ public class ParkingServiceTest {
 
     @Test
     public void processExitingVehicle_shouldNotUpdateParking_whenErrorOccurred() {
+        setUpWorkingTest();
         final Date inTime = new Date(System.currentTimeMillis() - (60 * 60 * 1000));
         final Ticket ticket = generateTicket(CAR, inTime);
         when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
@@ -82,19 +107,8 @@ public class ParkingServiceTest {
     }
 
     @Test
-    public void processIncomingVehicule_shouldParkVehicle_whenParkingSlotIsAvailable() {
-        when(inputReaderUtil.readSelection()).thenReturn(1);
-        when(parkingSpotDAO.getNextAvailableSlot(any(ParkingType.class))).thenReturn(1);
-        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
-
-        parkingService.processIncomingVehicle();
-
-        verify(ticketDAO, times(1)).saveTicket(any(Ticket.class));
-        verify(parkingSpotDAO, times(1)).updateParking(any(ParkingSpot.class));
-    }
-
-    @Test
     public void parkingForLessThan30Minutes_shouldBeFree() {
+        setUpWorkingTest();
         final Date inTime = new Date(System.currentTimeMillis() - (20 * 60 * 1000));
         final Ticket ticket = generateTicket(CAR, inTime);
         when(ticketDAO.getTicket(anyString())).thenReturn(ticket);
@@ -111,6 +125,7 @@ public class ParkingServiceTest {
 
     @Test
     public void applyDiscountForRecurringUser() {
+        setUpWorkingTest();
         final Date inTime = new Date(System.currentTimeMillis() - (60 * 60 * 1000));
         final Ticket ticket = generateTicket(CAR, inTime);
         ticket.setRecurringUser(true);

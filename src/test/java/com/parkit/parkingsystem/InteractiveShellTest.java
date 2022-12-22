@@ -23,7 +23,7 @@ public class InteractiveShellTest {
     private static ParkingService parkingService;
 
     @Test
-    public void givenLoadInterface_whenCase1_thenProcessIncomingVehicleIsCalled() {
+    public void loadInterface_shouldCallProcessIncomingVehicle_whenCase1() {
         // Given When
         when(inputReaderUtil.readSelection()).thenReturn(1, 3);
         InteractiveShell.loadInterface(inputReaderUtil, parkingService);
@@ -32,7 +32,7 @@ public class InteractiveShellTest {
     }
 
     @Test
-    public void givenLoadInterface_whenCase2_thenProcessExitingVehicleIsCalled() {
+    public void loadInterface_shouldCallProcessExitingVehicle_whenCase2() {
         // Given When
         when(inputReaderUtil.readSelection()).thenReturn(2, 3);
         InteractiveShell.loadInterface(inputReaderUtil, parkingService);
@@ -41,7 +41,7 @@ public class InteractiveShellTest {
     }
 
     @Test
-    public void givenLoadInterface_whenCase3_thenExitingFromSystem() {
+    public void loadInterface_shouldNotCallAnyone_whenCase3() {
         // Given When
         when(inputReaderUtil.readSelection()).thenReturn(3);
         InteractiveShell.loadInterface(inputReaderUtil, parkingService);
@@ -51,7 +51,7 @@ public class InteractiveShellTest {
     }
 
     @Test
-    public void givenLoadInterface_whenOtherCase_thenNothingHappens() {
+    public void loadInterface_shouldNotCallAnyone_whenOtherCases() {
         // Given When
         when(inputReaderUtil.readSelection()).thenReturn(4, -1, 0, 3);
         InteractiveShell.loadInterface(inputReaderUtil, parkingService);
