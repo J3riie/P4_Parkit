@@ -1,5 +1,5 @@
 /* Setting up PROD DB */
-/*create database prod;*/
+create database prod;
 use prod;
 
 create table parking(
@@ -27,7 +27,7 @@ insert into parking(PARKING_NUMBER,AVAILABLE,TYPE) values(5,true,'BIKE');
 commit;
 
 /* Setting up TEST DB */
-/*create database test;*/
+create database test;
 use test;
 
 create table parking(
