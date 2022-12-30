@@ -23,7 +23,7 @@ import com.parkit.parkingsystem.service.ParkingService;
 import com.parkit.parkingsystem.util.InputReaderUtil;
 
 @ExtendWith(MockitoExtension.class)
-public class ParkingDataBaseIT {
+class ParkingDataBaseIT {
 
 	private static DataBaseTestConfig dataBaseTestConfig = new DataBaseTestConfig();
 
@@ -57,7 +57,7 @@ public class ParkingDataBaseIT {
 	}
 
 	@Test
-	public void testParkingACar() throws Exception {
+	void testParkingACar() throws Exception {
 		// checks that a ticket is actually saved in DB and Parking table is updated
 		// with availability
 		final ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
@@ -68,7 +68,7 @@ public class ParkingDataBaseIT {
 	}
 
 	@Test
-	public void testParkingLotExit() throws Exception {
+	void testParkingLotExit() throws Exception {
 		// checks that the fare generated and out time are populated correctly in the
 		// database
 		final ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
@@ -81,7 +81,7 @@ public class ParkingDataBaseIT {
 	}
 
 	@Test
-	public void testParkingRecurringUser() throws Exception {
+	void testParkingRecurringUser() throws Exception {
 		// checks that a ticket is already saved in DB
 		final ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
 		parkingService.processIncomingVehicle();

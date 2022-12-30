@@ -9,6 +9,7 @@ import com.parkit.parkingsystem.config.DataBaseConfig;
 import com.parkit.parkingsystem.constants.DBConstants;
 import com.parkit.parkingsystem.constants.ParkingType;
 import com.parkit.parkingsystem.model.ParkingSpot;
+import com.parkit.parkingsystem.service.TechnicalException;
 
 public class ParkingSpotDAO {
 	private DataBaseConfig dataBaseConfig = new DataBaseConfig();
@@ -21,7 +22,7 @@ public class ParkingSpotDAO {
 		this.dataBaseConfig = dataBaseConfig;
 	}
 
-	public int getNextAvailableSlot(ParkingType parkingType) throws SQLException {
+	public int getNextAvailableSlot(ParkingType parkingType) throws TechnicalException {
 		int result = -1;
 		try (Connection con = dataBaseConfig.getConnection();
 				final PreparedStatement ps = con.prepareStatement(DBConstants.GET_NEXT_PARKING_SPOT)) {
@@ -34,7 +35,7 @@ public class ParkingSpotDAO {
 			dataBaseConfig.closePreparedStatement(ps);
 			return result;
 		} catch (final Exception ex) {
-			throw new SQLException("Error fetching next available slot", ex);
+			throw new TechnicalException("Error fetching next available slot", ex);
 		}
 	}
 

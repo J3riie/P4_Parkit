@@ -2,6 +2,12 @@ package com.parkit.parkingsystem.constants;
 
 public class DBConstants {
 
+	private DBConstants() {
+		// This constructor is empty because it should not be instanciated
+	}
+
+	public static final String DB_PASSWORD = "rootroot";
+
 	public static final String GET_NEXT_PARKING_SPOT = "select min(PARKING_NUMBER) from parking where AVAILABLE = true and TYPE = ?";
 
 	public static final String UPDATE_PARKING_SPOT = "update parking set available = ? where PARKING_NUMBER = ?";

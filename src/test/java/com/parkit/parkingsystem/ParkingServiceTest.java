@@ -27,7 +27,7 @@ import com.parkit.parkingsystem.service.ParkingService;
 import com.parkit.parkingsystem.util.InputReaderUtil;
 
 @ExtendWith(MockitoExtension.class)
-public class ParkingServiceTest {
+class ParkingServiceTest {
 
 	private static ParkingService parkingService;
 
@@ -51,7 +51,7 @@ public class ParkingServiceTest {
 	}
 
 	@Test
-	public void processIncomingVehicule_shouldParkVehicle_whenParkingSlotIsAvailable() throws SQLException {
+	void processIncomingVehicule_shouldParkVehicle_whenParkingSlotIsAvailable() throws SQLException {
 		setUpWorkingTest();
 		when(inputReaderUtil.readSelection()).thenReturn(1);
 		when(parkingSpotDAO.getNextAvailableSlot(any(ParkingType.class))).thenReturn(1);
@@ -64,7 +64,7 @@ public class ParkingServiceTest {
 	}
 
 	@Test
-	public void processIncomingVehicle_shouldThrowException_whenParkingSpotIsIllegal() throws SQLException {
+	void processIncomingVehicle_shouldThrowException_whenParkingSpotIsIllegal() throws SQLException {
 		parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
 		when(inputReaderUtil.readSelection()).thenReturn(2);
 		when(parkingSpotDAO.getNextAvailableSlot(any(ParkingType.class))).thenReturn(0);
@@ -76,7 +76,7 @@ public class ParkingServiceTest {
 	}
 
 	@Test
-	public void processExitingVehicle_shouldUpdateParking() throws SQLException {
+	void processExitingVehicle_shouldUpdateParking() throws SQLException {
 		setUpWorkingTest();
 		final Date inTime = new Date(System.currentTimeMillis() - (60 * 60 * 1000));
 		final Ticket ticket = generateTicket(CAR, inTime);
@@ -92,7 +92,7 @@ public class ParkingServiceTest {
 	}
 
 	@Test
-	public void processExitingVehicle_shouldNotUpdateParking_whenErrorOccurred() throws SQLException {
+	void processExitingVehicle_shouldNotUpdateParking_whenErrorOccurred() throws SQLException {
 		setUpWorkingTest();
 		final Date inTime = new Date(System.currentTimeMillis() - (60 * 60 * 1000));
 		final Ticket ticket = generateTicket(CAR, inTime);
@@ -108,7 +108,7 @@ public class ParkingServiceTest {
 	}
 
 	@Test
-	public void processExitingVehicle_shouldThrowSQLException_whenGetTicket() throws SQLException {
+	void processExitingVehicle_shouldThrowSQLException_whenGetTicket() throws SQLException {
 		setUpWorkingTest();
 		new Date(System.currentTimeMillis() - (60 * 60 * 1000));
 		when(ticketDAO.getTicket(anyString())).thenThrow(new SQLException("Failed to get ticket"));
@@ -120,7 +120,7 @@ public class ParkingServiceTest {
 	}
 
 	@Test
-	public void parkingForLessThan30Minutes_shouldBeFree() throws SQLException {
+	void parkingForLessThan30Minutes_shouldBeFree() throws SQLException {
 		setUpWorkingTest();
 		final Date inTime = new Date(System.currentTimeMillis() - (20 * 60 * 1000));
 		final Ticket ticket = generateTicket(CAR, inTime);
@@ -137,7 +137,7 @@ public class ParkingServiceTest {
 	}
 
 	@Test
-	public void applyDiscountForRecurringUser() throws SQLException {
+	void applyDiscountForRecurringUser() throws SQLException {
 		setUpWorkingTest();
 		final Date inTime = new Date(System.currentTimeMillis() - (60 * 60 * 1000));
 		final Ticket ticket = generateTicket(CAR, inTime);

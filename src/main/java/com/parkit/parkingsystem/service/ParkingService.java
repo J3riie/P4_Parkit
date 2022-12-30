@@ -34,7 +34,7 @@ public class ParkingService {
 	public void processIncomingVehicle() {
 		try {
 			final ParkingSpot parkingSpot = getNextParkingNumberIfAvailable();
-			if (parkingSpot != null && parkingSpot.getId() > 0) {
+			if (parkingSpot.getId() > 0) {
 				final String vehicleRegNumber = getVehicleRegNumber();
 				parkingSpot.setAvailability(false);
 				parkingSpotDAO.updateParking(parkingSpot);// allot this parking space and mark it's availability as
@@ -53,7 +53,7 @@ public class ParkingService {
 				logger.info("Recorded in-time for vehicle number {} is {}", vehicleRegNumber, ticket.getInTime());
 			}
 		} catch (final Exception e) {
-			logger.error("Unable to process incoming vehicle", e);
+			logger.error("Unable to process incoming vehicle: {}", e.getMessage());
 		}
 	}
 
@@ -74,11 +74,11 @@ public class ParkingService {
 				logger.warn("Unable to update ticket information. Error occurred");
 			}
 		} catch (final Exception e) {
-			logger.error("Unable to process exiting vehicle", e);
+			logger.error("Unable to process exiting vehicle: {}", e.getMessage());
 		}
 	}
 
-	private String getVehicleRegNumber() throws Exception {
+	private String getVehicleRegNumber() {
 		logger.info("Please type the vehicle registration number and press enter key");
 		return inputReaderUtil.readVehicleRegistrationNumber();
 	}
@@ -88,23 +88,24 @@ public class ParkingService {
 
 	}
 
-	public ParkingSpot getNextParkingNumberIfAvailable() {
-		int parkingNumber = 0;
-		ParkingSpot parkingSpot = null;
+	private ParkingSpot getNextParkingNumberIfAvailable() throws TechnicalException {
 		try {
 			final ParkingType parkingType = getVehichleType();
-			parkingNumber = parkingSpotDAO.getNextAvailableSlot(parkingType);
-			if (parkingNumber > 0) {
-				parkingSpot = new ParkingSpot(parkingNumber, parkingType, true);
+			final int parkingNumber = parkingSpotDAO.getNextAvailableSlot(parkingType);
+			if (parkingSpotIsAvailable(parkingNumber)) {
+				return new ParkingSpot(parkingNumber, parkingType, true);
 			} else {
-				throw new Exception("Error fetching parking number from DB. Parking slots might be full");
+				throw new FunctionalException("Error fetching parking number from DB. Parking slots might be full");
 			}
 		} catch (final IllegalArgumentException ie) {
-			logger.error("Error parsing user input for type of vehicle", ie);
+			throw new IllegalArgumentException("Error parsing user input for type of vehicle", ie);
 		} catch (final Exception e) {
-			logger.error("Error fetching next available parking slot", e);
+			throw new TechnicalException("Error fetching next available parking slot", e);
 		}
-		return parkingSpot;
+	}
+
+	private boolean parkingSpotIsAvailable(int parkingNumber) {
+		return parkingNumber > 0;
 	}
 
 	private ParkingType getVehichleType() {

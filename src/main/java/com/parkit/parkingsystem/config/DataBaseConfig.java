@@ -1,5 +1,7 @@
 package com.parkit.parkingsystem.config;
 
+import static com.parkit.parkingsystem.constants.DBConstants.DB_PASSWORD;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -16,7 +18,7 @@ public class DataBaseConfig {
 	public Connection getConnection() throws ClassNotFoundException, SQLException {
 		logger.info("Create DB connection");
 		Class.forName("com.mysql.cj.jdbc.Driver");
-		return DriverManager.getConnection("jdbc:mysql://localhost:3306/prod", "root", "rootroot");
+		return DriverManager.getConnection("jdbc:mysql://localhost:3306/prod?serverTimezone=UTC", "root", DB_PASSWORD);
 	}
 
 	public void closeConnection(Connection con) {
