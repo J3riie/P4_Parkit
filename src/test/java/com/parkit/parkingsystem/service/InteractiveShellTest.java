@@ -1,4 +1,4 @@
-package com.parkit.parkingsystem;
+package com.parkit.parkingsystem.service;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
